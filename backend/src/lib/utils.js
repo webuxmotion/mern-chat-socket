@@ -20,3 +20,7 @@ export const generateToken = (userId, res) => {
 export const removeToken = (res) => {
     res.cookie(tokenKey, "", {maxAge: 0})
 }
+
+export const res500 = (res, message = "Internal server error") => {
+    res.status(500).json({ message })
+}
