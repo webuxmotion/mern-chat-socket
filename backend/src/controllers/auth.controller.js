@@ -58,39 +58,42 @@ export const signup = async (req, res) => {
 }
 
 export const login = async (req, res) => {
-    const { email, password } = req.body;
+  const { email, password } = req.body
 
-    try {
-        const user = await User.findOne({ email })
+  try {
+    const user = await User.findOne({ email })
 
-        if (!user) {
-            res.status(400).json({
-                message: "Invalid credentials"
-            })
-        }
-
-        const isPasswordCorrect = await bcrypt.compare(password, user.password)
-
-        if (!isPasswordCorrect) {
-            res.status(400).json({
-                message: "Invalid credentials"
-            })
-        }
-
-        generateToken(user._id, res)
-
-        res.status(200).json({
-            _id: user._id,
-            fullName: user.fullName,
-            email: user.email,
-            profilePic: user.profilePic
-        })
-    } catch (error) {
-        console.log("Error when login in auth controller", error.message)
-
-        res500(res)
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid credentials"
+      })
     }
+
+    const isPasswordCorrect = await bcrypt.compare(password, user.password)
+
+    if (!isPasswordCorrect) {
+      return res.status(400).json({
+        message: "Invalid credentials"
+      })
+    }
+
+    generateToken(user._id, res)
+
+    return res.status(200).json({
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      profilePic: user.profilePic
+    })
+  } catch (error) {
+    console.error("Error when login in auth controller", error)
+
+    if (!res.headersSent) {
+      return res500(res)
+    }
+  }
 }
+
 
 export const logout = (req, res) => {
     try {
