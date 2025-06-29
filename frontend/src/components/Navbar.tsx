@@ -1,9 +1,9 @@
 import { LogOut, MessageSquare, Settings, User } from "lucide-react";
 import { Link } from "react-router-dom";
-
 import { useAuthStore } from "../store/useAuthStore";
 
-const Navbar = () => {
+
+const Navbar: React.FC = () => {
   const { logout, authUser } = useAuthStore();
 
   return (
@@ -23,20 +23,14 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <Link
-              to={"/settings"}
-              className={`
-              btn btn-sm gap-2 transition-colors
-              
-              `}
-            >
+            <Link to={"/settings"} className="btn btn-sm gap-2 transition-colors">
               <Settings className="w-4 h-4" />
               <span className="hidden sm:inline">Settings</span>
             </Link>
 
             {authUser && (
               <>
-                <Link to={"/profile"} className={`btn btn-sm gap-2`}>
+                <Link to={"/profile"} className="btn btn-sm gap-2">
                   <User className="size-5" />
                   <span className="hidden sm:inline">Profile</span>
                 </Link>
@@ -53,4 +47,5 @@ const Navbar = () => {
     </header>
   );
 };
+
 export default Navbar;

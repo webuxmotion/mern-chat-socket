@@ -1,15 +1,46 @@
 import toast from "react-hot-toast"
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import { create } from "zustand"
 
+interface AuthUser {
+    _id: string
+    name: string
+    profilePic?: string
+    fullName: string
+    createdAt: string
+    email: string
+}
+
+interface AuthStore {
+    authUser: AuthUser | null
+
+    isSigningUp: boolean
+    isLoggingIn: boolean
+    isUpdatingProfile: boolean
+    isCheckingAuth: boolean
+
+    socket: Socket | null
+    onlineUsers: string[]
+
+    signup: (data: any) => Promise<void>
+    login: (data: any) => Promise<void>
+    logout: () => Promise<void>
+    updateProfile: (data: any) => Promise<void>
+
+    checkAuth: () => Promise<void>
+    connectSocket: () => void
+    disconnectSocket: () => void
+}
+
 import { axiosInstance } from "../lib/axios"
+import { handleApiError } from "../lib/handleApiError";
 
 const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
 
-export const useAuthStore = create((set, get) => ({
+export const useAuthStore = create<AuthStore>((set, get) => ({
     authUser: null,
     isSigningUp: false,
-    isLoggingIng: false,
+    isLoggingIn: false,
     isUpdatingProfile: false,
     isCheckingAuth: true,
     onlineUsers: [],
@@ -35,7 +66,7 @@ export const useAuthStore = create((set, get) => ({
             set({ authUser: res.data })
             toast.success("Account created successfully");
         } catch (error) {
-            toast.error(error.response.data.message);
+            handleApiError(error)
         } finally {
             set({ isSigningUp: false });
         }
@@ -48,7 +79,7 @@ export const useAuthStore = create((set, get) => ({
             toast.success("Logged in successfully")
 
         } catch (error) {
-            toast.error(error.response.data.message)
+            handleApiError(error)
         } finally {
             set({ isLoggingIn: false })
         }
@@ -60,7 +91,7 @@ export const useAuthStore = create((set, get) => ({
             get().disconnectSocket()
             toast.success("Logged out successfully");
         } catch (error) {
-            toast.error(error.response.data.message);
+            handleApiError(error)
         }
     },
     updateProfile: async (data) => {
@@ -71,7 +102,7 @@ export const useAuthStore = create((set, get) => ({
             toast.success("Profile updated successfully");
         } catch (error) {
             console.log("error in update profile:", error);
-            toast.error(error.response.data.message);
+            handleApiError(error)
         } finally {
             set({ isUpdatingProfile: false });
         }
@@ -94,6 +125,9 @@ export const useAuthStore = create((set, get) => ({
         });
     },
     disconnectSocket: () => {
-        if (get().socket?.connected) get().socket.disconnect();
-    },
+        const socket = get().socket;
+        if (socket?.connected) {
+            socket.disconnect();
+        }
+    }
 }))

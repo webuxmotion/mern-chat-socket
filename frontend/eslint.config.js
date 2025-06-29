@@ -1,4 +1,3 @@
-// eslint.config.js
 import js from '@eslint/js'
 import { defineConfig } from 'eslint/config'
 import pluginImport from 'eslint-plugin-import'
@@ -7,42 +6,39 @@ import pluginReactHooks from 'eslint-plugin-react-hooks'
 import pluginReactRefresh from 'eslint-plugin-react-refresh'
 import globals from 'globals'
 
-export default defineConfig([
-  // Ignore build output
-  { ignores: ['dist'] },
+const tsPlugin = await import('@typescript-eslint/eslint-plugin')
+const tsParser = await import('@typescript-eslint/parser')
 
+export default defineConfig([
+  { ignores: ['dist'] },
   {
     files: ['**/*.{js,jsx,ts,tsx,mjs,cjs}'],
     languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-      globals: { ...globals.browser, ...globals.node },
+      parser: tsParser.default,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
         ecmaFeatures: { jsx: true },
+        project: './tsconfig.json',
       },
+      globals: { ...globals.browser, ...globals.node },
     },
     settings: {
-      react: {
-        version: 'detect',
-      },
+      react: { version: 'detect' },
     },
     plugins: {
       react: pluginReact,
       'react-hooks': pluginReactHooks,
       'react-refresh': pluginReactRefresh,
       import: pluginImport,
+      '@typescript-eslint': tsPlugin.default,
     },
     rules: {
       ...js.configs.recommended.rules,
       ...pluginReact.configs.recommended.rules,
       ...pluginReactHooks.configs.recommended.rules,
-
-      // React 17+ - no need for `import React from "react"`
+      ...tsPlugin.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
-
-      // Import sorting
       'import/order': [
         'warn',
         {
@@ -51,15 +47,8 @@ export default defineConfig([
           alphabetize: { order: 'asc', caseInsensitive: true },
         },
       ],
-
-      // Ignore unused React components (uppercase constants like JSX)
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
-
-      // React Refresh for Vite/Next dev experience
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
   },
 ])

@@ -6,12 +6,17 @@ import { useChatStore } from "../store/useChatStore";
 
 const MessageInput = () => {
     const [text, setText] = useState("");
-    const [imagePreview, setImagePreview] = useState(null);
-    const fileInputRef = useRef(null);
+    const [imagePreview, setImagePreview] = useState<string | undefined>(undefined);
+
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
     const { sendMessage } = useChatStore();
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return; // якщо файлів немає — вийти
+
+        const file = files[0];
+
         if (!file.type.startsWith("image/")) {
             toast.error("Please select an image file");
             return;
@@ -19,29 +24,31 @@ const MessageInput = () => {
 
         const reader = new FileReader();
         reader.onloadend = () => {
-            setImagePreview(reader.result);
+            if (typeof reader.result === "string") {
+                setImagePreview(reader.result);
+            }
         };
         reader.readAsDataURL(file);
     };
 
     const removeImage = () => {
-        setImagePreview(null);
+        setImagePreview(undefined);
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    const handleSendMessage = async (e) => {
+    const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!text.trim() && !imagePreview) return;
 
         try {
             await sendMessage({
-                text: text.trim(),
+                content: text.trim(),
                 image: imagePreview,
             });
 
             // Clear form
             setText("");
-            setImagePreview(null);
+            setImagePreview(undefined);
             if (fileInputRef.current) fileInputRef.current.value = "";
         } catch (error) {
             console.error("Failed to send message:", error);
