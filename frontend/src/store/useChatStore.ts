@@ -13,6 +13,11 @@ interface User {
     fullName: string;
 }
 
+interface MessageData {
+    text: string; 
+    image?: string;
+}
+
 interface ChatStore {
     messages: Message[];
     users: User[];
@@ -22,7 +27,7 @@ interface ChatStore {
 
     getUsers: () => Promise<void>;
     getMessages: (userId: string) => Promise<void>;
-    sendMessage: (messageData: { content: string; image?: string }) => Promise<void>;
+    sendMessage: (messageData: MessageData) => Promise<void>;
     setSelectedUser: (user: User | null) => void;
     subscribeToMessages: () => void;
     unsubscribeFromMessages: () => void;
@@ -48,7 +53,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         }
     },
 
-    sendMessage: async (messageData: { content: string; image?: string }) => {
+    sendMessage: async (messageData: MessageData) => {
         const { selectedUser, messages } = get();
         if (!selectedUser) return;
 
